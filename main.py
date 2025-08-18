@@ -33,7 +33,6 @@ class SentimentDataset(Dataset):
     def __init__(self, data):
         self.texts = data['text'].values
         self.labels = data['label'].values
-        print(self.labels.shape)
 
     def __len__(self):
         return len(self.texts)
@@ -70,9 +69,9 @@ output_size = 2
 model = SentimentRNN(vocab_size, embed_size, hidden_size, output_size)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.0005)
 
-num_epochs = 3
+num_epochs = 10
 model.train()
 
 for epoch in range(num_epochs):
