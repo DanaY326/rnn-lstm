@@ -8,19 +8,27 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from torch.utils.data import Dataset, DataLoader
 
-df = pd.read_csv("content/IMDB Dataset.csv", names=["text", "label"])
+df = pd.read_csv("content/IMDB Dataset.csv", names=["text", "label"], skiprows=[0])
 
 df['text'] = df['text'].str.lower().str.split()
+
+#print(df['label'].shape)
 
 le = LabelEncoder()
 df['label'] = le.fit_transform(df['label'])
 
+#print(df['label'].shape)
+
 train_data, test_data = train_test_split(df, test_size=0.2, random_state=42)
+
+#print(train_data['label'].shape)
 
 vocab = {word for phrase in df['text'] for word in phrase}
 word_to_idx = {word: idx for idx, word in enumerate(vocab, start=1)}
 
 max_length = df['text'].str.len().max()
+
+#print(train_data['label'].shape)
 
 def encode_and_pad(text):
     encoded = [word_to_idx[word] for word in text]
@@ -29,17 +37,21 @@ def encode_and_pad(text):
 train_data['text'] = train_data['text'].apply(encode_and_pad)
 test_data['text'] = test_data['text'].apply(encode_and_pad)
 
+#print(train_data['label'].shape)
+#print(train_data['label'])
+
 class SentimentDataset(Dataset):
     def __init__(self, data):
         self.texts = data['text'].values
         self.labels = data['label'].values
+        print(self.labels.shape)
 
     def __len__(self):
         return len(self.texts)
     
     def __getitem__(self, idx):
         text = self.texts[idx]
-        label = self.texts[idx]
+        label = self.labels[idx]
         return torch.tensor(text, dtype=torch.long), torch.tensor(label, dtype=torch.long)
     
 train_dataset = SentimentDataset(train_data)
@@ -73,12 +85,17 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 num_epochs = 10
 model.train()
+print(train_dataset.labels)
+train_iterator = iter(train_loader)
+print(next(train_iterator))
 for epoch in range(num_epochs):
     epoch_loss = 0
     for texts, labels in train_loader:
         
-        print(labels)
         outputs = model(texts)
+
+        #print(labels.shape)
+        #break
         loss = criterion(outputs, labels)
 
         optimizer.zero_grad()
