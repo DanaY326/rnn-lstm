@@ -53,7 +53,7 @@ class SentimentRNN(nn.Module):
     def __init__(self, vocab_size, embed_size, hidden_size, middle_size, output_size):
         super(SentimentRNN, self).__init__()
         self.embedding = nn.Embedding(vocab_size, embed_size)
-        self.rnn = nn.LSTM(embed_size, hidden_size, batch_first=True)
+        self.rnn = nn.RNN(embed_size, hidden_size, batch_first=True)
         self.fc1 = nn.Linear(hidden_size, middle_size)
         self.fc2 = nn.Linear(middle_size, output_size)
 
