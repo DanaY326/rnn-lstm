@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 import pandas as pd
 import numpy as np
@@ -49,27 +50,32 @@ train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
 class SentimentRNN(nn.Module):
-    def __init__(self, vocab_size, embed_size, hidden_size, output_size):
+    def __init__(self, vocab_size, embed_size, hidden_size, middle_size, output_size):
         super(SentimentRNN, self).__init__()
         self.embedding = nn.Embedding(vocab_size, embed_size)
         self.rnn = nn.RNN(embed_size, hidden_size, batch_first=True)
-        self.fc = nn.Linear(hidden_size, output_size)
+        self.fc1 = nn.Linear(hidden_size, middle_size)
+        self.fc2 = nn.Linear(middle_size, output_size)
+
 
     def forward(self, x):
         x = self.embedding(x)
         h0 = torch.zeros(1, x.size(0), hidden_size).to(x.device)
         out, _ = self.rnn(x, h0)
-        out = self.fc(out[:, -1, :])
+        out = self.fc1(out[:, -1, :])
+        out = F.dropout(F.relu(out))
+        out = self.fc2(out)
         return out
     
 vocab_size = len(vocab) + 1
 embed_size = 128
 hidden_size = 128
+middle_size = 32
 output_size = 2
-model = SentimentRNN(vocab_size, embed_size, hidden_size, output_size)
+model = SentimentRNN(vocab_size, embed_size, hidden_size, middle_size, output_size)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.0005)
+optimizer = optim.Adam(model.parameters(), lr=0.0005, weight_decay=0.01)
 
 num_epochs = 10
 model.train()
