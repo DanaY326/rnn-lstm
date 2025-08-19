@@ -75,12 +75,12 @@ output_size = 2
 model = SentimentRNN(vocab_size, embed_size, hidden_size, middle_size, output_size)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.0005, weight_decay=0.01)
+optimizer = optim.AdamW(model.parameters(), lr=0.0015, weight_decay=0.01)
 
 num_epochs = 10
-model.train()
 
-for epoch in range(num_epochs):
+def train():
+    model.train()
     epoch_loss = 0
     for texts, labels in train_loader:
         
@@ -94,3 +94,27 @@ for epoch in range(num_epochs):
         epoch_loss += loss.item()
         
     print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {epoch_loss / len(train_loader):.4f}')
+
+def test():
+    model.eval()
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        epoch_loss = 0
+        for texts, labels in test_loader:
+            outputs = model(texts)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+            loss = criterion(outputs, labels)
+            epoch_loss += loss.item()
+            
+        accuracy = 100.0 * correct / total
+        print(f'Accuracy: {accuracy:.2f}%, Loss: {epoch_loss / len(test_loader):.4f}')
+
+
+test()
+for epoch in range(num_epochs):
+    train()
+    test()
