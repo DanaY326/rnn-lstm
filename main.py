@@ -78,12 +78,13 @@ model = SentimentRNN(vocab_size, embed_size, hidden_size, middle_size, output_si
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 
-num_epochs = 10
+num_epochs = 3
+log_interval = 10
 
 def train():
     model.train()
     epoch_loss = 0
-    for texts, labels in train_loader:
+    for batch_idx, (texts, labels) in enumerate(train_loader):
         
         outputs = model(texts)
         loss = criterion(outputs, labels)
@@ -94,6 +95,9 @@ def train():
         optimizer.step()
 
         epoch_loss += loss.item()
+        if batch_idx % log_interval == 0:
+            torch.save(model.state_dict, "results/model.pth")
+            torch.save(optimizer.state_dict, "results/optimizer.pth")
         
     print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {epoch_loss / len(train_loader):.4f}')
 
@@ -120,3 +124,17 @@ test()
 for epoch in range(num_epochs):
     train()
     test()
+"""
+model_state_dict = torch.load("results/model.pth")
+model.load_state_dict(model_state_dict)
+
+optimizer_state_dict = torch.load("results/optimizer.pth")
+optimizer.load_state_dict(optimizer_state_dict)
+
+num_epochs = 3
+
+test()
+for epoch in range(num_epochs):
+    train()
+    test()
+"""
