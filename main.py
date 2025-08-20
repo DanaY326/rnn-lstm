@@ -25,7 +25,7 @@ max_length = df['text'].str.len().max()
 
 def encode_and_pad(text):
     encoded = [word_to_idx[word] for word in text]
-    return encoded + [0] * (max_length - len(encoded))
+    return [0] * (max_length - len(encoded)) + encoded
 
 train_data['text'] = train_data['text'].apply(encode_and_pad)
 test_data['text'] = test_data['text'].apply(encode_and_pad)
@@ -75,7 +75,7 @@ output_size = 2
 model = SentimentRNN(vocab_size, embed_size, hidden_size, middle_size, output_size)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.AdamW(model.parameters(), lr=0.0015, weight_decay=0.01)
+optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 
 num_epochs = 10
 
@@ -89,6 +89,7 @@ def train():
 
         optimizer.zero_grad()
         loss.backward()
+        nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
 
         epoch_loss += loss.item()
