@@ -53,19 +53,20 @@ class SentimentRNN(nn.Module):
     def __init__(self, vocab_size, embed_size, hidden_size, middle_size, output_size):
         super(SentimentRNN, self).__init__()
         self.embedding = nn.Embedding(vocab_size, embed_size)
-        self.rnn = nn.GRU(embed_size, hidden_size, batch_first=True)
+        self.rnn = nn.GRU(embed_size, hidden_size, batch_first=True, dropout=0.3, num_layers=2)
         self.fc1 = nn.Linear(hidden_size, middle_size)
         self.fc2 = nn.Linear(middle_size, output_size)
 
 
     def forward(self, x):
         x = self.embedding(x)
-        h0 = torch.zeros(1, x.size(0), hidden_size).to(x.device)
+        x = F.dropout(x, p=0.3)
+        h0 = torch.zeros(2, x.size(0), hidden_size).to(x.device)
         out, _ = self.rnn(x, h0)
         out = self.fc1(out[:, -1, :])
-        out = F.dropout(F.relu(out))
+        out = F.dropout(F.relu(out), p=0.5)
         out = self.fc2(out)
-        return out
+        return F.log_softmax(out, dim=1)
     
 vocab_size = len(vocab) + 1
 embed_size = 128
