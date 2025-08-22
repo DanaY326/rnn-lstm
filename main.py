@@ -5,14 +5,20 @@ import torch.optim as optim
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import spacy
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from torch.utils.data import Dataset, DataLoader
 
+nlp = spacy.load("en_core_web_sm")
+
 df = pd.read_csv("content/IMDB Dataset.csv", names=["text", "label"], skiprows=[0])
 
-df['text'] = df['text'].str.lower().str.split()
-
+df["text"] = df['text'].str.lower()
+df['text'] = list(nlp.pipe(df['text']))
+df['text'].map(lambda list_of_text: [token.text for token in list_of_text if not token.is_stop])
+print(df['text'])
+"""
 le = LabelEncoder()
 df['label'] = le.fit_transform(df['label'])
 
@@ -124,6 +130,7 @@ test()
 for epoch in range(num_epochs):
     train()
     test()
+"""
 """
 model_state_dict = torch.load("results/model.pth")
 model.load_state_dict(model_state_dict)
