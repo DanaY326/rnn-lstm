@@ -46,8 +46,8 @@ class SentimentDataset(Dataset):
 train_dataset = SentimentDataset(train_data)
 test_dataset = SentimentDataset(test_data)
 
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=1000, shuffle=False)
 
 class SentimentRNN(nn.Module):
     def __init__(self, vocab_size, embed_size, hidden_size, middle_size, output_size):
@@ -76,9 +76,9 @@ output_size = 2
 model = SentimentRNN(vocab_size, embed_size, hidden_size, middle_size, output_size)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
+optimizer = optim.AdamW(model.parameters(), lr=0.0007, weight_decay=0.05)
 
-num_epochs = 3
+num_epochs = 10
 log_interval = 10
 
 def train():
@@ -96,8 +96,8 @@ def train():
 
         epoch_loss += loss.item()
         if batch_idx % log_interval == 0:
-            torch.save(model.state_dict, "results/model.pth")
-            torch.save(optimizer.state_dict, "results/optimizer.pth")
+            torch.save(model.state_dict(), "results/model.pth")
+            torch.save(optimizer.state_dict(), "results/optimizer.pth")
         
     print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {epoch_loss / len(train_loader):.4f}')
 
@@ -131,7 +131,7 @@ model.load_state_dict(model_state_dict)
 optimizer_state_dict = torch.load("results/optimizer.pth")
 optimizer.load_state_dict(optimizer_state_dict)
 
-num_epochs = 3
+num_epochs = 7
 
 test()
 for epoch in range(num_epochs):
