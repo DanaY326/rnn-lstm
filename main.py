@@ -15,10 +15,10 @@ nlp = spacy.load("en_core_web_sm")
 df = pd.read_csv("content/IMDB Dataset.csv", names=["text", "label"], skiprows=[0])
 
 df["text"] = df['text'].str.lower()
-df['text'] = list(nlp.pipe(df['text']))
-df['text'].map(lambda list_of_text: [token.text for token in list_of_text if not token.is_stop])
+df['text'] = list(nlp.pipe(df['text'], disable=["parser", "ner"]))
+df['text'] = df['text'].map(lambda list_of_text: [token.lemma_ for token in list_of_text if not token.is_stop and not token.is_punct])
 print(df['text'])
-"""
+
 le = LabelEncoder()
 df['label'] = le.fit_transform(df['label'])
 
@@ -28,6 +28,7 @@ vocab = {word for phrase in df['text'] for word in phrase}
 word_to_idx = {word: idx for idx, word in enumerate(vocab, start=1)}
 
 max_length = df['text'].str.len().max()
+print("Vocab length: {} Max length: {}".format(len(vocab), max_length))
 
 def encode_and_pad(text):
     encoded = [word_to_idx[word] for word in text]
@@ -80,6 +81,8 @@ hidden_size = 128
 middle_size = 32
 output_size = 2
 model = SentimentRNN(vocab_size, embed_size, hidden_size, middle_size, output_size)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = model.to(device)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.AdamW(model.parameters(), lr=0.0007, weight_decay=0.05)
@@ -130,7 +133,7 @@ test()
 for epoch in range(num_epochs):
     train()
     test()
-"""
+
 """
 model_state_dict = torch.load("results/model.pth")
 model.load_state_dict(model_state_dict)
